@@ -1,0 +1,186 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Racer - Ultimate Car Racing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ffff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas {
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #00ffff, inset 0 0 30px rgba(0, 255, 255, 0.1);
+            background: #000;
+        }
+
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .score-panel {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .level {
+            font-size: 18px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: #000;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            touch-action: manipulation;
+        }
+
+        .btn:hover, .btn:active {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+        }
+
+        .btn-nitro {
+            background: linear-gradient(45deg, #ff00ff, #ff4081);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .btn-pause {
+            background: linear-gradient(45deg, #ffff00, #ffaa00);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ff0000;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.5);
+            display: none;
+            z-index: 200;
+        }
+
+        .game-over h1 {
+            color: #ff0000;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #ff0000;
+        }
+
+        .high-score {
+            color: #ffff00;
+            font-size: 20px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        @media (max-width: 768px) {
+            canvas {
+                width: 95vw;
+                height: 70vh;
+            }
+            
+            .ui {
+                flex-direction: column;
+                gap: 10px;
+                top: 10px;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+                bottom: 10px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="ui">
+        <div class="score-panel">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="level">Level: <span id="level">1</span> | Speed: <span id="speed">1x</span></div>
+        </div>
+        <div class="score-panel">
+            <div>High Score: <span id="highScore">0</span></div>
+        </div>
+    </div>
+
+    <div class="controls" id="mobileControls" style="display: none;">
+        <button class="btn" id="leftBtn">←</button>
+        <button class="btn" id="nitroBtn">NITRO</button>
+        <button class="btn" id="pauseBtn">⏸️</button>
+        <button class="btn" id="rightBtn">→</button>
+    </div>
+
+    <div class="game-over" id="gameOver">
+        <h1>💥 CRASH! 💥</h1>
+        <div class="high-score" id="finalHighScore">High Score: 0</div>
+        <button class="btn" onclick="restartGame()">RESTART</button>
+        <button class="btn" onclick="startGame()">NEW GAME</button>
+    </div>
+
+    <audio id="engineSound" preload="auto" loop>
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSq+2/LMeSwFJHf
